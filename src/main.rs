@@ -1,72 +1,11 @@
-use std::{collections::HashMap, io, iter::Map};
+mod lib;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-enum Month {
-    January,
-    February,
-    March,
-    April,
-    May,
-    June,
-    July,
-    August,
-    September,
-    October,
-    November,
-    December,
-}
+use std::io;
+use std::io::Write;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-enum ZodiacSign {
-    Aquarius,
-    Pieces,
-    Aries,
-    Taurus,
-    Gemini,
-    Cancer,
-    Leo,
-    Virgo,
-    Libra,
-    Scorpio,
-    Sagittarius,
-    Capricorn,
-}
-
-#[derive(Default)]
-struct Horoscope {
-    // Month, day, Zodiac present, Zodiac previous
-    months: HashMap<Month, (u8, ZodiacSign, ZodiacSign)>,
-}
-
-impl Horoscope {
-    fn init(&mut self) {
-        let mut init_months: HashMap<Month, (u8, ZodiacSign, ZodiacSign)> = HashMap::new();
-        init_months.insert(
-            Month::January,
-            (20, ZodiacSign::Aquarius, ZodiacSign::Capricorn),
-        );
-        init_months.insert(
-            Month::February,
-            (19, ZodiacSign::Pieces, ZodiacSign::Aquarius),
-        );
-        init_months.insert(Month::March, (21, ZodiacSign::Aries, ZodiacSign::Pieces));
-
-        self.months = init_months;
-    }
-
-    fn get(&self, month: &Month, day: u8) -> ZodiacSign {
-        let select_month = self.months.get(month);
-        let mut select_zodiac_sign = ZodiacSign::Aquarius;
-
-        if day >= select_month.unwrap().0 {
-            select_zodiac_sign = select_month.unwrap().1.clone();
-        } else {
-            select_zodiac_sign = select_month.unwrap().2.clone();
-        }
-
-        select_zodiac_sign
-    }
-}
+use crate::lib::horoscope::Horoscope;
+use crate::lib::horoscope::Month;
+use crate::lib::horoscope::ZodiacSign;
 
 fn get_horoscope(month: u8, day: u8) -> Option<ZodiacSign> {
     if day == 0 || day > 31 {
@@ -170,55 +109,57 @@ fn get_horoscope(month: u8, day: u8) -> Option<ZodiacSign> {
 fn main() {
     println!("What is your horoscope?");
 
-    println!("Enter the month: ");
-    let mut input_month = String::new();
+    print!("Enter the month: ");
+    io::stdout().flush().expect("Could not flush!");
 
+    let mut input_month = String::new();
     io::stdin()
         .read_line(&mut input_month)
         .expect("Failed to read month");
 
-    println!("Enter the day: ");
-    let mut input_day = String::new();
+    print!("Enter the day: ");
+    io::stdout().flush().expect("Could not flush!");
 
+    let mut input_day = String::new();
     io::stdin()
         .read_line(&mut input_day)
         .expect("Failed to read day");
 
-    let Ok(month) = input_month.trim_end().parse::<u8>() else {
-        eprintln!("Invalid 'Month' input!");
-        return;
-    };
+    // let Ok(month) = input_month.trim_end().parse::<u8>() else {
+    //     eprintln!("Invalid 'Month' input!");
+    //     return;
+    // };
 
     let Ok(day) = input_day.trim_end().parse::<u8>() else {
         eprintln!("Invalid Day input!");
         return;
     };
 
-    let Some(result) = get_horoscope(month, day) else {
+    // let Some(result) = get_horoscope(month, day) else {
+    //     eprintln!("Horoscope not found!");
+    //     return;
+    // };
+
+    // println!("1. Horoscope is {:?}", result);
+
+    let mut horoscope = Horoscope::default();
+    horoscope.init();
+
+    let Ok(month_value) = input_month.parse::<Month>() else {
+        panic!("Failed to parse month!");
+    };
+
+    let Some(result) = horoscope.get(&month_value, day) else {
         eprintln!("Horoscope not found!");
         return;
     };
 
-    println!("Horoscope is {:?}", result);
+    println!("\nHoroscope is {:?}", result);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_1a() {
-        let mut test_horoscope = Horoscope::default();
-        test_horoscope.init();
-
-        let result = test_horoscope.get(&Month::January, 20);
-
-        assert_eq!(result, ZodiacSign::Aquarius);
-
-        let result = test_horoscope.get(&Month::January, 19);
-
-        assert_eq!(result, ZodiacSign::Capricorn);
-    }
 
     #[test]
     fn test_1b() {
